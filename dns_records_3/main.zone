@@ -10,6 +10,6 @@ resource "aws_route53_record" "dev_api" {
   zone_id = "ZDEV456"
   name    = "api.dev.example.com"
   type    = "A"
-  ttl     = 60
+  ttl     = 80
   records = ["10.0.0.2"]
 }

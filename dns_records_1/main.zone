@@ -13,3 +13,11 @@ resource "aws_route53_record" "api_service" {
   ttl     = 300
   records = ["web.example.com"]
 }
+
+resource "aws_route53_record" "ui_service" {
+  zone_id = "ZPROD123"
+  name    = "ui.example.com"
+  type    = "NS"
+  ttl     = 300
+  records = ["192.0.2.30"]
+}

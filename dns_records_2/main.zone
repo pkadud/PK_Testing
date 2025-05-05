@@ -9,7 +9,15 @@ resource "aws_route53_record" "web_app" {
 resource "aws_route53_record" "db_service" {
   zone_id = "ZPROD123"
   name    = "db.example.com"
-  type    = "A"
+  type    = "NS"
   ttl     = 300
   records = ["192.0.2.30"]
+}
+
+resource "aws_route53_record" "ab_service" {
+  zone_id = "ZPROD123"
+  name    = "ab.example.com"
+  type    = "CNAME"
+  ttl     = 200
+  records = ["192.0.2.10"]
 }

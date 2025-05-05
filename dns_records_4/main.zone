@@ -3,7 +3,7 @@ resource "aws_route53_record" "test_ui" {
   name    = "ui.test.example.com"
   type    = "A"
   ttl     = 120
-  records = ["198.51.100.1"]
+  records = ["198.51.100.12"]
 }
 
 resource "aws_route53_record" "test_api" {
