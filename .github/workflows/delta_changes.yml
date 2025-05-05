@@ -26,7 +26,6 @@ jobs:
         run: |
           START_DATE="${{ github.event.inputs.start_date }}"
           END_DATE="${{ github.event.inputs.end_date }}"
-          EXCLUDED_PATHS="${{ github.event.inputs.excluded_paths }}"
 
           # Fetch all commits and remove shallow history (if necessary)
           git fetch --prune --unshallow
