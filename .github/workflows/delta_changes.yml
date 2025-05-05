@@ -34,13 +34,6 @@ jobs:
           # Get list of modified files between the specified dates
           modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
 
-          if [ -n "$EXCLUDED_PATHS" ]; then
-            IFS=',' read -ra EXCLUDES <<< "$EXCLUDED_PATHS"
-            for exclude in "${EXCLUDES[@]}"; do
-              modified_files=$(echo "$modified_files" | grep -v "^$exclude")
-            done
-          fi
-
           echo "Modified files between $START_DATE and $END_DATE (excluding specified folders):"
           echo "$modified_files"
 
