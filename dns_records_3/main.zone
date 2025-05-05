@@ -1,0 +1,15 @@
+resource "aws_route53_record" "dev_ui" {
+  zone_id = "ZDEV456"
+  name    = "ui.dev.example.com"
+  type    = "A"
+  ttl     = 60
+  records = ["10.0.0.1"]
+}
+
+resource "aws_route53_record" "dev_api" {
+  zone_id = "ZDEV456"
+  name    = "api.dev.example.com"
+  type    = "A"
+  ttl     = 60
+  records = ["10.0.0.2"]
+}

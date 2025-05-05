@@ -1,0 +1,15 @@
+resource "aws_route53_record" "web_app" {
+  zone_id = "ZPROD123"
+  name    = "web.example.com"
+  type    = "A"
+  ttl     = 300
+  records = ["192.0.2.10"]
+}
+
+resource "aws_route53_record" "api_service" {
+  zone_id = "ZPROD123"
+  name    = "api.example.com"
+  type    = "CNAME"
+  ttl     = 300
+  records = ["web.example.com"]
+}
