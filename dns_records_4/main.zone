@@ -10,6 +10,6 @@ resource "aws_route53_record" "test_api" {
   zone_id = "ZTEST789"
   name    = "api.test.example.com"
   type    = "CNAME"
-  ttl     = 120
+  ttl     = 140
   records = ["ui.test.example.com"]
 }
