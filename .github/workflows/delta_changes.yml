@@ -33,7 +33,7 @@ jobs:
           # Get list of modified files between the specified dates
           modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
 
-          echo "Modified files between $START_DATE and $END_DATE (excluding specified folders):"
+          echo "Modified files between $START_DATE and $END_DATE :"
           echo "$modified_files"
 
           if [ -z "$modified_files" ]; then
