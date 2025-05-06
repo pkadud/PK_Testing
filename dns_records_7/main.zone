@@ -1,0 +1,52 @@
+$ORIGIN xyz.com.
+$TTL 3600
+
+; =======================
+; Authoritative DNS setup
+; =======================
+
+@       172800  IN  NS      ns-518.awsdns-00.net.
+@       172800  IN  NS      ns-115.awsdns-14.com.
+@       172800  IN  NS      ns-1542.awsdns-00.co.uk.
+@       172800  IN  NS      ns-1464.awsdns-55.org.
+
+@       900     IN  SOA     ns-518.awsdns-00.net. awsdns-hostmaster.amazon.com. (
+                                1         ; serial
+                                7200      ; refresh
+                                900       ; retry
+                                1209600   ; expire
+                                86400     ; minimum
+)
+
+; ========
+; NOTICE
+; ========
+; This domain is managed by Certificate automation.
+; Check README for more details.
+
+; ===============================
+; Project: identity-pair-au-prod-backend | Cluster: dmz
+; ===============================
+
+identity-pair-au-prod-dmz-proxy    3600 IN A       36.174.111.1
+echo-identity-pair-dmz             3600 IN CNAME   identity-pair-prod-dmz-proxy
+pair-metadata                      3600 IN CNAME   identity-pair-prod-dmz-proxy
+pair-cleanroom                     3600 IN CNAME   identity-pair-prod-dmz-proxy
+pair-metadata-v2                   3600 IN CNAME   identity-pair-prod-dmz-proxy
+
+; ===============================
+; Project: eng-ops-services-au-spoke-prod | IP: external-cluster-ingress
+; ===============================
+
+spoke-external-ingress             3600 IN A       32.223.245.49
+spoke-echo                         3600 IN CNAME   spoke-external-ingress
+vault                              3600 IN CNAME   spoke-external-ingress
+
+; ===============================
+; Project: eng-ops-mttn-prod-aus-se1 | GKE: mttn-dmz-prod-ause1-01
+; ===============================
+
+mttn-dmz-prod-01                   3600 IN A       14.122.813.45
+echo-mttn-dmz-nginx                3600 IN CNAME   xyz.com.
+echo-mttn-dmz-istio                3600 IN CNAME   xyz.com.
+lsh-collaboration-api              3600 IN CNAME   xyz.com.
