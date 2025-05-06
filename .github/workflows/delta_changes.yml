@@ -39,3 +39,21 @@ jobs:
           if [ -z "$modified_files" ]; then
             echo "No relevant files modified."
           fi
+
+      # Step 3: Show commit details for each modified file and display changes made
+      - name: Show commit details for modified files and display changes
+        run: |
+          START_DATE="${{ github.event.inputs.start_date }}"
+          END_DATE="${{ github.event.inputs.end_date }}"
+
+          modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
+
+          if [ -z "$modified_files" ]; then
+            echo "No files have been modified between $START_DATE and $END_DATE."
+          else
+            for file in $modified_files; do
+              echo "Commit details and changes for $file between $START_DATE and $END_DATE:"
+              git log --since="$START_DATE" --until="$END_DATE" --pretty=format:"%h - %an, %ad : %s" -p -- $file
+              echo "-----------------------------------------------------------"
+            done
+          fi  
