@@ -1,6 +1,6 @@
-$ORIGIN arbor.io.
+$ORIGIN abc.io.
 
-; A record for arbor.io is managed in TerraformRepos/arbor-io
+; A record for abc.io is managed in TerraformRepos/abc-io
 ; pointing to a cloudfront distribution.
 @       86400   AWS     ALIAS   A   d123456abcdefg.cloudfront.net. Z3ABCDE1234567 true
 
@@ -14,7 +14,7 @@ $ORIGIN arbor.io.
 ; The database known as 'db-pub-business-models' and maintained by ps infrastructure
 db      3600    IN      A       192.0.2.123
 
-; Used by arbortech/go/machines/whitelist/etcd.service.
+; Used by abctech/go/machines/whitelist/etcd.service.
 etcd    3600    IN      A       10.0.0.1
 etcd    3600    IN      A       10.0.0.2
 etcd    3600    IN      A       10.0.0.3
