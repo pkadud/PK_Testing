@@ -27,21 +27,19 @@ jobs:
           START_DATE="${{ github.event.inputs.start_date }}"
           END_DATE="${{ github.event.inputs.end_date }}"
 
-          # Fetch all commits and remove shallow history (if necessary)
           git fetch --prune --unshallow
 
-          # Get list of modified files between the specified dates
           modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
 
-          echo "Modified files between $START_DATE and $END_DATE :"
+          echo "Modified files between $START_DATE and $END_DATE:"
           echo "$modified_files"
 
           if [ -z "$modified_files" ]; then
             echo "No relevant files modified."
           fi
 
-      # Step 3: Show commit details for each modified file and display changes made
-      - name: Show detailed file changes (added, modified, deleted) between dates
+      # Step 3: Show detailed file changes
+      - name: Show detailed file changes (added, modified, deleted)
         run: |
           START_DATE="${{ github.event.inputs.start_date }}"
           END_DATE="${{ github.event.inputs.end_date }}"
@@ -64,7 +62,7 @@ jobs:
             echo "🟢 Added Files:"
             for file in $added_files; do
               echo "➕ $file"
-              git log --since="$START_DATE" --until="$END_DATE" --diff-filter=A --pretty=format:"%h - %an, %ad : %s" -p -- $file
+              git log --since="$START_DATE" --until="$END_DATE" --diff-filter=A --pretty=format:"%h - %an, %ad : %s" -p -- "$file"
               echo "-----------------------------------------------------------"
             done
 
@@ -72,16 +70,22 @@ jobs:
             echo "📝 Modified Files:"
             for file in $modified_files; do
               echo "✏️  $file"
-              git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M --pretty=format:"%h - %an, %ad : %s" -p -- $file
+              git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M --pretty=format:"%h - %an, %ad : %s" -p -- "$file"
               echo "-----------------------------------------------------------"
             done
 
             echo ""
             echo "❌ Deleted Files:"
-            for file in $deleted_files; do
-              echo "🗑️  $file"
-              git log --since="$START_DATE" --until="$END_DATE" --diff-filter=D --pretty=format:"%h - %an, %ad : %s" -- $file
-              echo "-----------------------------------------------------------"
-            done
-          fi
-
+            if [ -z "$deleted_files" ]; then
+              echo "None"
+            else
+              for file in $deleted_files; do
+                echo "🗑️  $file"
+                git log --since="$START_DATE" --until="$END_DATE" --diff-filter=D --pretty=format:"%h - %an, %ad : %s" --name-status \
+                | awk -v fname="$file" '
+                  /^([ADMRTUC])\t/ && $2 == fname { show = 1 }
+                  /^[^ \t]/ { if (show) print; show = 0 }
+                '
+                echo "-----------------------------------------------------------"
+              done
+            fi
