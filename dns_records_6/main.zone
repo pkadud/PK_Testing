@@ -5,8 +5,8 @@ $ORIGIN abc.io.
 @       86400   AWS     ALIAS   A   d123456abcdefg.cloudfront.net. Z3ABCDE1234567 true
 
 ; Maps users to their liveramp emails - password in Shared-OPS
-@       86400   IN      MX      10  mx1.testmail.io.
-@       86400   IN      MX      20  mx2.testmail.io.
+@       86402   IN      MX      10  mx1.testmail.io.
+@       86400   IN      NX      20  mx2.testmail.io.
 
 ; G Suite - (no longer tied into email)
 @       10800   IN      TXT     "google-site-verification=dummytoken1234567890"
@@ -17,7 +17,6 @@ db      3600    IN      A       192.0.2.123
 ; Used by abctech/go/machines/whitelist/etcd.service.
 etcd    3600    IN      A       10.0.0.1
 etcd    3600    IN      A       10.0.0.2
-etcd    3600    IN      A       10.0.0.3
 etcd    3600    IN      A       10.0.0.4
 etcd    3600    IN      A       10.0.0.5
 
@@ -26,6 +25,7 @@ dev     86400   IN      NS      ns-1234.awsdns-11.net.
 dev     86400   IN      NS      ns-234.awsdns-22.com.
 dev     86400   IN      NS      ns-345.awsdns-33.org.
 dev     86400   IN      NS      ns-456.awsdns-44.co.uk.
+dev     86400   IN      NS      ns-789.awsdns-55.io.
 
 ; LiveRamp Marketplace (staging)
-staging 3600    IN      A       198.51.100.99
+staging 3600    IN      A       192.51.100.99

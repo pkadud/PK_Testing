@@ -10,7 +10,7 @@ resource "aws_route53_record" "db_service" {
   zone_id = "ZPROD123"
   name    = "db.example.com"
   type    = "NS"
-  ttl     = 300
+  ttl     = 200
   records = ["192.0.2.30"]
 }
 
