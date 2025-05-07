@@ -15,19 +15,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           ref: main
 
-      # Step 2: Get list of modified files between start_date and end_date
       - name: Get modified files between start_date and end_date
         run: |
           START_DATE="${{ github.event.inputs.start_date }}"
           END_DATE="${{ github.event.inputs.end_date }}"
 
-          git fetch --prune --unshallow
+          # Avoid running --unshallow if repository is already fully fetched
+          if git rev-parse --is-shallow-repository &>/dev/null; then
+            git fetch --prune --unshallow
+          fi
 
           modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
 
@@ -38,7 +39,6 @@ jobs:
             echo "No relevant files modified."
           fi
 
-      # Step 3: Show detailed file changes (added, modified, deleted)
       - name: Show detailed file changes (added, modified, deleted)
         run: |
           START_DATE="${{ github.event.inputs.start_date }}"
@@ -46,7 +46,10 @@ jobs:
 
           echo "Checking changes between $START_DATE and $END_DATE..."
 
-          git fetch --prune --unshallow
+          # Avoid running --unshallow if repository is already fully fetched
+          if git rev-parse --is-shallow-repository &>/dev/null; then
+            git fetch --prune --unshallow
+          fi
 
           commits=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format:"%H")
 
