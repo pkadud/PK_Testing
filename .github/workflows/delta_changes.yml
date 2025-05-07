@@ -81,11 +81,19 @@ jobs:
             else
               for file in $deleted_files; do
                 echo "🗑️  $file"
-                git log --since="$START_DATE" --until="$END_DATE" --diff-filter=D --pretty=format:"%h - %an, %ad : %s" --name-status \
-                | awk -v fname="$file" '
-                  /^([ADMRTUC])\t/ && $2 == fname { show = 1 }
-                  /^[^ \t]/ { if (show) print; show = 0 }
-                '
+
+                # Find the last commit where this file existed
+                last_commit=$(git rev-list -n 1 --before="$END_DATE" --after="$START_DATE" HEAD -- "$file")
+
+                if [ -n "$last_commit" ]; then
+                  echo "🔎 Last seen in commit: $last_commit"
+                  echo "📄 Contents of $file before deletion:"
+                  echo "-----------------------------------------------------------"
+                  git show "$last_commit:$file" || echo "⚠️ Could not show contents (binary or inaccessible)."
+                else
+                  echo "⚠️ No commit found for $file in specified range."
+                fi
+
                 echo "-----------------------------------------------------------"
               done
             fi
