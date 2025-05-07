@@ -82,11 +82,9 @@ jobs:
               for file in $deleted_files; do
                 echo "🗑️  $file"
 
-                # Get the commit where the file was deleted
                 delete_commit=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=D --pretty=format:"%H" -- "$file" | head -n 1)
 
                 if [ -n "$delete_commit" ]; then
-                  # Get the last commit before deletion where the file still existed
                   last_known_commit=$(git rev-list "$delete_commit"^ -- "$file" | head -n 1)
 
                   if [ -n "$last_known_commit" ]; then
@@ -104,3 +102,4 @@ jobs:
                 echo "-----------------------------------------------------------"
               done
             fi
+          fi
