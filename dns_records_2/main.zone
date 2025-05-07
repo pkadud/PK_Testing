@@ -21,3 +21,12 @@ resource "aws_route53_record" "ab_service" {
   ttl     = 200
   records = ["192.0.2.10"]
 }
+
+# Root (@) record as A record
+resource "aws_route53_record" "root_a" {
+  zone_id = "Z1230345"
+  name    = "@"
+  type    = "A"
+  ttl     = 200
+  records = ["193.0.2.1"]
+}

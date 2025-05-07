@@ -18,13 +18,11 @@ db      3600    IN      A       192.0.2.123
 etcd    3600    IN      A       10.0.0.1
 etcd    3600    IN      A       10.0.0.2
 etcd    3600    IN      A       10.0.0.4
-etcd    3600    IN      A       10.0.0.5
 
 ; Delegate zone for testing
 dev     86400   IN      NS      ns-1234.awsdns-11.net.
 dev     86400   IN      NS      ns-234.awsdns-22.com.
 dev     86400   IN      NS      ns-345.awsdns-33.org.
-dev     86400   IN      NS      ns-789.awsdns-55.io.
 
 ; LiveRamp Marketplace (staging)
 staging 3600    IN      A       192.51.100.99

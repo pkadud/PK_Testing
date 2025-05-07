@@ -40,7 +40,6 @@ pair-cleanroom                     3600 IN CNAME   identity-pair-prod-dmz-proxy
 spoke-external-ingress             3600 IN A       32.223.243.49
 spoke-echo                         3600 IN CNAME   spoke-external-ingress
 vault                              3600 IN CNAME   spoke-external-ingress
-pair-metadata-v2                   3600 IN CNAME   identity-pair-prod-dmz-proxy
 
 ; ===============================
 ; Project: eng-ops-mttn-prod-aus-se1 | GKE: mttn-dmz-prod-ause1-01
