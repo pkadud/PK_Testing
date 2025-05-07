@@ -49,6 +49,5 @@ pair-metadata-v2                   3600 IN CNAME   identity-pair-prod-dmz-proxy
 
 mttn-dmz-prod-01                   3600 IN A       14.122.813.45
 echo-mttn-dmz-nginx                3600 IN CNAME   xyz.com.
-echo-mttn-dmz-istio                3600 IN CNAME   abc.com.
 lsh-collaboration-api              3600 IN CNAME   mno.com.
 lsh-collaboration-ui               3600 IN CNAME   kpk.com.
