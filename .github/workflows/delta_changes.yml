@@ -15,20 +15,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           ref: main
 
+      # Step 2: Get list of modified files between start_date and end_date
       - name: Get modified files between start_date and end_date
         run: |
           START_DATE="${{ github.event.inputs.start_date }}"
           END_DATE="${{ github.event.inputs.end_date }}"
 
-          # Avoid running --unshallow if repository is already fully fetched
-          if git rev-parse --is-shallow-repository &>/dev/null; then
-            git fetch --prune --unshallow
-          fi
+          git fetch --prune --unshallow
 
           modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
 
@@ -39,6 +38,7 @@ jobs:
             echo "No relevant files modified."
           fi
 
+      # Step 3: Show detailed file changes (added, modified, deleted)
       - name: Show detailed file changes (added, modified, deleted)
         run: |
           START_DATE="${{ github.event.inputs.start_date }}"
@@ -46,28 +46,72 @@ jobs:
 
           echo "Checking changes between $START_DATE and $END_DATE..."
 
-          # Avoid running --unshallow if repository is already fully fetched
-          if git rev-parse --is-shallow-repository &>/dev/null; then
-            git fetch --prune --unshallow
+          echo "🔍 Gathering added files..."
+          added_files=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=A --pretty=format: --name-only | sort | uniq)
+
+          echo "🔍 Gathering modified files..."
+          modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M --pretty=format: --name-only | sort | uniq)
+
+          echo "🔍 Gathering deleted files..."
+          deleted_files=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=D --pretty=format: --name-only | sort | uniq)
+
+          if [ -z "$added_files$modified_files$deleted_files" ]; then
+            echo "✅ No file changes detected between $START_DATE and $END_DATE."
+          else
+            echo ""
+            echo "🟢 Added Files:"
+            for file in $added_files; do
+              echo "➕ $file"
+              git log --since="$START_DATE" --until="$END_DATE" --diff-filter=A --pretty=format:"%h - %an, %ad : %s" -p -- "$file"
+              echo "-----------------------------------------------------------"
+            done
+
+            echo ""
+            echo "📝 Modified Files:"
+            for file in $modified_files; do
+              echo "✏️  $file"
+              git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M --pretty=format:"%h - %an, %ad : %s" -p -- "$file"
+              echo "-----------------------------------------------------------"
+            done
+
+            echo ""
+            echo "❌ Deleted Files:"
+            if [ -z "$deleted_files" ]; then
+              echo "None"
+            else
+              for file in $deleted_files; do
+                echo "🗑️  $file"
+
+                # Get the commit where the file was deleted
+                delete_commit=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=D --pretty=format:"%H" -- "$file" | head -n 1)
+
+                if [ -n "$delete_commit" ]; then
+                  # Get the last commit before deletion where the file still existed
+                  last_known_commit=$(git rev-list "$delete_commit"^ -- "$file" | head -n 1)
+
+                  if [ -n "$last_known_commit" ]; then
+                    echo "🔎 Last known commit: $last_known_commit"
+                    echo "📄 Contents of $file before deletion:"
+                    echo "-----------------------------------------------------------"
+                    git show "${last_known_commit}:${file}" || echo "⚠️ File content unavailable (binary or inaccessible)"
+                  else
+                    echo "⚠️ Could not find any commit with $file before deletion."
+                  fi
+                else
+                  echo "⚠️ File $file was not deleted in the given range, or unable to locate deletion commit."
+                fi
+
+                echo "-----------------------------------------------------------"
+              done
+            fi
+
+            # Check for deleted lines within modified files
+            echo ""
+            echo "🔍 Gathering deleted lines within modified files:"
+            for file in $modified_files; do
+              echo "✏️  $file"
+              # Get the diff to show deleted lines (lines starting with '-')
+              git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M --pretty=format:"%h - %an, %ad : %s" -p -- "$file" | grep "^-" | grep -v "^---" || echo "No lines deleted in this file."
+              echo "-----------------------------------------------------------"
+            done
           fi
-
-          commits=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format:"%H")
-
-          if [ -z "$commits" ]; then
-            echo "✅ No commits found between $START_DATE and $END_DATE."
-            exit 0
-          fi
-
-          echo "🔍 Changes found in commits:"
-          echo "$commits"
-          echo "-----------------------------------------------------------"
-
-          for commit in $commits; do
-            echo "🔁 Commit $commit"
-            git show --name-status --oneline "$commit"
-
-            echo "🔍 Diff showing deletions (lines removed):"
-            git show "$commit" --unified=0 | grep "^-" | grep -v "^---" || echo "No lines deleted in this commit."
-
-            echo "-----------------------------------------------------------"
-          done
