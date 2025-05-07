@@ -38,7 +38,7 @@ jobs:
             echo "No relevant files modified."
           fi
 
-      # Step 3: Show detailed file changes
+      # Step 3: Show detailed file changes (added, modified, deleted)
       - name: Show detailed file changes (added, modified, deleted)
         run: |
           START_DATE="${{ github.event.inputs.start_date }}"
@@ -82,26 +82,25 @@ jobs:
               for file in $deleted_files; do
                 echo "🗑️  $file"
 
-                # Find the commit where the file was deleted
+                # Get the commit where the file was deleted
                 delete_commit=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=D --pretty=format:"%H" -- "$file" | head -n 1)
 
                 if [ -n "$delete_commit" ]; then
-                  # Find last commit before deletion where file existed
-                  last_good_commit=$(git rev-list "$delete_commit"^ -- "$file" | head -n 1)
+                  # Get the last commit before deletion where the file still existed
+                  last_known_commit=$(git rev-list "$delete_commit"^ -- "$file" | head -n 1)
 
-                  if [ -n "$last_good_commit" ]; then
-                    echo "🔎 Last known version in commit: $last_good_commit"
+                  if [ -n "$last_known_commit" ]; then
+                    echo "🔎 Last known commit: $last_known_commit"
                     echo "📄 Contents of $file before deletion:"
                     echo "-----------------------------------------------------------"
-                    git show "$last_good_commit:$file" || echo "⚠️ Could not retrieve contents (binary or inaccessible)."
+                    git show "${last_known_commit}:${file}" || echo "⚠️ File content unavailable (binary or inaccessible)"
                   else
-                    echo "⚠️ No earlier commit found containing this file."
+                    echo "⚠️ Could not find any commit with $file before deletion."
                   fi
                 else
-                  echo "⚠️ Could not determine deletion commit for $file."
+                  echo "⚠️ File $file was not deleted in the given range, or unable to locate deletion commit."
                 fi
 
                 echo "-----------------------------------------------------------"
               done
             fi
-          fi
