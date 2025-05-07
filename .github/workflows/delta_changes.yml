@@ -82,16 +82,23 @@ jobs:
               for file in $deleted_files; do
                 echo "🗑️  $file"
 
-                # Find the last commit where this file existed
-                last_commit=$(git rev-list -n 1 --before="$END_DATE" --after="$START_DATE" HEAD -- "$file")
+                # Find the commit where the file was deleted
+                delete_commit=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=D --pretty=format:"%H" -- "$file" | head -n 1)
 
-                if [ -n "$last_commit" ]; then
-                  echo "🔎 Last seen in commit: $last_commit"
-                  echo "📄 Contents of $file before deletion:"
-                  echo "-----------------------------------------------------------"
-                  git show "$last_commit:$file" || echo "⚠️ Could not show contents (binary or inaccessible)."
+                if [ -n "$delete_commit" ]; then
+                  # Find last commit before deletion where file existed
+                  last_good_commit=$(git rev-list "$delete_commit"^ -- "$file" | head -n 1)
+
+                  if [ -n "$last_good_commit" ]; then
+                    echo "🔎 Last known version in commit: $last_good_commit"
+                    echo "📄 Contents of $file before deletion:"
+                    echo "-----------------------------------------------------------"
+                    git show "$last_good_commit:$file" || echo "⚠️ Could not retrieve contents (binary or inaccessible)."
+                  else
+                    echo "⚠️ No earlier commit found containing this file."
+                  fi
                 else
-                  echo "⚠️ No commit found for $file in specified range."
+                  echo "⚠️ Could not determine deletion commit for $file."
                 fi
 
                 echo "-----------------------------------------------------------"
