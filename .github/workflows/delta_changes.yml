@@ -109,7 +109,7 @@ jobs:
             echo ""
             echo "🔍 Gathering deleted lines within modified files:"
             for file in $modified_files; do
-              echo "✏️  $file"
+              echo "🗑️  $file"
               # Get the diff to show deleted lines (lines starting with '-')
               git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M --pretty=format:"%h - %an, %ad : %s" -p -- "$file" | grep "^-" | grep -v "^---" || echo "No lines deleted in this file."
               echo "-----------------------------------------------------------"
