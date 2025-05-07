@@ -6,7 +6,6 @@ $TTL 3600
 ; =======================
 
 @       172800  IN  NS      ns-518.awsdns-00.net.
-@       172800  IN  NS      ns-115.awsdns-14.com.
 @       172800  IN  NS      ns-1542.awsdns-00.co.uk.
 @       172800  IN  NS      ns-1464.awsdns-55.org.
 @       172800  IN  NS      ns-1434.awsdns-66.io.
