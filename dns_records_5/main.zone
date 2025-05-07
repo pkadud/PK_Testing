@@ -75,7 +75,6 @@ resource "aws_route53_record" "ns_records" {
   records = [
     "ns-123.awsdns-42.com",
     "ns-234.awsdns-53.org",
-    "ns-345.awsdns-64.co.uk",
-    "ns-456.awsdns-75.net"
+    "ns-345.awsdns-64.co.uk"
   ]
 }
