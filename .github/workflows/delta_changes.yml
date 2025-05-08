@@ -32,8 +32,10 @@ jobs:
           END_DATE="${{ github.event.inputs.end_date }}"
           EXCLUDE_DIRS="${{ github.event.inputs.exclude_dirs }}"
 
+        # Fetch all commits
           git fetch --prune --unshallow
 
+        # Get list of modified files between the specified dates
           modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
 
           if [ -n "$EXCLUDED_PATHS" ]; then
