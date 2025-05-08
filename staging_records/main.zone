@@ -1,0 +1,30 @@
+$ORIGIN staging.example.com.
+
+; project=eng-ax-harness-usa-staging
+app 3600 IN A  32.127.202.20
+
+; Datahub - Bring Your Own Visualisation Solution
+bi-connector   300 IN A     35.102.28.224
+
+
+;DEV-3008 project=eng-ops-mttn-stg-uscentral1 gke=mttn-dmz-stg-01
+mttn-dmz-01                      300 IN A     32.35.129.42
+echo-mttn-dmz-nginx              300 IN CNAME abc.staging.example.com.
+echo-mttn-dmz-istio              300 IN CNAME xyz.staging.example.com.
+activation-api                   300 IN CNAME qwe.staging.example.com.
+segment-delivery                 300 IN CNAME rty.staging.example.com.
+segment-management               300 IN CNAME uio.staging.example.com.
+platform-search                  300 IN CNAME pas.staging.example.com.
+lca-metadata-staging-usc1        300 IN CNAME dfg.staging.example.com.
+dist                             300 IN CNAME hjk.staging.example.com.
+app-internal                     300 IN CNAME lmn.staging.example.com.
+unified-billing                  300 IN CNAME opq.staging.example.com.
+int-harness-management           300 IN CNAME xcv.staging.example.com.
+notification                     300 IN CNAME agh.staging.example.com.
+app-mttn                         300 IN CNAME uio.staging.example.com.
+collab-api                       300 IN CNAME klo.staging.example.com.
+lsh-collaboration-api            300 IN CNAME iuj.staging.example.com.
+ingestion-tool                   300 IN CNAME yhu.staging.example.com.
+connect                          300 IN CNAME jku.staging.example.com.
+cvv-alpha-fe                     300 IN CNAME klo.staging.example.com.
+cvv-fe                           300 IN CNAME pkp.staging.example.com.
