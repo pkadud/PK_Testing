@@ -66,9 +66,13 @@ jobs:
           EXCLUDE_GREP=$(build_exclude_grep)
 
           get_filtered_files() {
-            git log --since="$START_DATE" --until="$END_DATE" --diff-filter=$1 --pretty=format: --name-only |
-              sort | uniq |
-              grep -Ev "$EXCLUDE_GREP"
+            all_files=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=$1 --pretty=format: --name-only | sort | uniq)
+            
+            if [ -n "$EXCLUDE_GREP" ]; then
+            echo "$all_files" | grep -Ev "$EXCLUDE_GREP"
+            else
+            echo "$all_files"
+            fi
           }
 
           echo "🔍 Gathering added files..."
