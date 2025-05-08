@@ -9,6 +9,10 @@ on:
       end_date:
         description: 'End date (YYYY-MM-DD)'
         required: true
+      exclude_dirs:
+        description: 'Space-separated list of directories to exclude (e.g., "docs/ test/")'
+        required: false
+        default: ''
 
 jobs:
   capture_changes:
@@ -26,10 +30,21 @@ jobs:
         run: |
           START_DATE="${{ github.event.inputs.start_date }}"
           END_DATE="${{ github.event.inputs.end_date }}"
+          EXCLUDE_DIRS="${{ github.event.inputs.exclude_dirs }}"
+
           git fetch --prune --unshallow
 
-          modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
-          echo "Modified files between $START_DATE and $END_DATE:"
+          build_exclude_grep() {
+            for dir in $EXCLUDE_DIRS; do
+              echo -n "|^$dir"
+            done | sed 's/^|//'
+          }
+
+          EXCLUDE_GREP=$(build_exclude_grep)
+
+          modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq | grep -Ev "$EXCLUDE_GREP")
+
+          echo "Modified files between $START_DATE and $END_DATE (excluding $EXCLUDE_DIRS):"
           echo "$modified_files"
 
       # Step 3: Show detailed file changes (added, modified, deleted, with line-level diffs)
@@ -37,20 +52,36 @@ jobs:
         run: |
           START_DATE="${{ github.event.inputs.start_date }}"
           END_DATE="${{ github.event.inputs.end_date }}"
+          EXCLUDE_DIRS="${{ github.event.inputs.exclude_dirs }}"
 
           echo "📆 Checking changes between $START_DATE and $END_DATE..."
+          echo "📂 Excluding directories: $EXCLUDE_DIRS"
+
+          build_exclude_grep() {
+            for dir in $EXCLUDE_DIRS; do
+              echo -n "|^$dir"
+            done | sed 's/^|//'
+          }
+
+          EXCLUDE_GREP=$(build_exclude_grep)
+
+          get_filtered_files() {
+            git log --since="$START_DATE" --until="$END_DATE" --diff-filter=$1 --pretty=format: --name-only |
+              sort | uniq |
+              grep -Ev "$EXCLUDE_GREP"
+          }
 
           echo "🔍 Gathering added files..."
-          added_files=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=A --pretty=format: --name-only | sort | uniq)
+          added_files=$(get_filtered_files A)
 
           echo "🔍 Gathering modified files..."
-          modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M --pretty=format: --name-only | sort | uniq)
+          modified_files=$(get_filtered_files M)
 
           echo "🔍 Gathering deleted files..."
-          deleted_files=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=D --pretty=format: --name-only | sort | uniq)
+          deleted_files=$(get_filtered_files D)
 
           if [ -z "$added_files$modified_files$deleted_files" ]; then
-            echo "✅ No file changes detected between $START_DATE and $END_DATE."
+            echo "✅ No file changes detected between $START_DATE and $END_DATE (excluding $EXCLUDE_DIRS)."
             exit 0
           fi
 
