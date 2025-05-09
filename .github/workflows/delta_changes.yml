@@ -134,14 +134,15 @@ jobs:
             done
           fi
 
-          # Print the report at the end of step
-          cat $REPORT_FILE
+          echo "Report saved to $REPORT_FILE"
 
     # Step 4: Upload report to GitHub Actions summary (visible in UI)
       - name: 📄 Upload delta report to GitHub Actions summary
         run: |
           echo "## 🔍 Delta Changes Report" >> $GITHUB_STEP_SUMMARY
-          cat delta_report.txt >> $GITHUB_STEP_SUMMARY      
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat delta_report.txt >> $GITHUB_STEP_SUMMARY 
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
     # Step 5: Upload delta report as artifact
       - name: 📤 Upload delta report as artifact
