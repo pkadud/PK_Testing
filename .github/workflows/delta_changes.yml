@@ -38,8 +38,8 @@ jobs:
           # Get list of modified files between the specified dates
           modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
 
-          if [ -n "$EXCLUDED_PATHS" ]; then
-            IFS=',' read -ra EXCLUDES <<< "$EXCLUDED_PATHS"
+          if [ -n "$EXCLUDE_DIRS" ]; then
+            IFS=',' read -ra EXCLUDES <<< "$EXCLUDE_DIRS"
             for exclude in "${EXCLUDES[@]}"; do
               modified_files=$(echo "$modified_files" | grep -v "^$exclude")
             done
@@ -138,3 +138,56 @@ jobs:
               echo "-----------------------------------------------------------"
             done
           fi
+
+      # Step 4: Generate summary report of changes
+      - name: Generate summary report of added, removed, and modified records
+        run: |
+          START_DATE="${{ github.event.inputs.start_date }}"
+          END_DATE="${{ github.event.inputs.end_date }}"
+          EXCLUDE_DIRS="${{ github.event.inputs.exclude_dirs }}"
+          REPORT_FILE="delta_change_report.txt"
+          
+          echo "Generating delta change report from $START_DATE to $END_DATE" > $REPORT_FILE
+          echo "==========================================================" >> $REPORT_FILE
+          
+          modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
+          
+          if [ -n "$EXCLUDE_DIRS" ]; then
+            IFS=',' read -ra EXCLUDES <<< "$EXCLUDE_DIRS"
+            for exclude in "${EXCLUDES[@]}"; do
+              modified_files=$(echo "$modified_files" | grep -v "^$exclude")
+            done
+          fi
+          
+          if [ -z "$modified_files" ]; then
+            echo "No files have been modified between $START_DATE and $END_DATE." >> $REPORT_FILE
+          else
+            for file in $modified_files; do
+              echo "File: $file" >> $REPORT_FILE
+              echo "--------------------------" >> $REPORT_FILE
+          
+              # Get full detailed diffs (added/removed context and code) for the file
+              git log --since="$START_DATE" --until="$END_DATE" -p -- $file >> $REPORT_FILE
+          
+              echo "" >> $REPORT_FILE
+              echo "----------------------------------------------------------" >> $REPORT_FILE
+              echo "" >> $REPORT_FILE
+            done
+          fi
+          
+          echo "Report saved to $REPORT_FILE"
+
+      # Step 5: Upload report to GitHub Actions summary (visible in UI)
+      - name: Add summary to GitHub Actions output
+        run: |
+          echo "### Delta Change Report" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat delta_change_report.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      # Step 6: Upload delta report as artifact
+      - name: Upload delta change report
+        uses: actions/upload-artifact@v4
+        with:
+          name: delta-change-report
+          path: delta_change_report.txt
