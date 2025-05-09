@@ -103,7 +103,10 @@ jobs:
           echo "📝 Modified Files:" >> $REPORT_FILE
           for file in $modified_files; do
             echo "✏️  $file" >> $REPORT_FILE
+            echo "➕ Added lines:" >> $REPORT_FILE
             git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M -p -- "$file" | grep '^+' | grep -v '^+++' >> $REPORT_FILE || echo "No added lines." >> $REPORT_FILE
+            echo "" >> $REPORT_FILE
+            echo "️️🗑️ Deleted lines:" >> $REPORT_FILE
             git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M -p -- "$file" | grep '^-' | grep -v '^---' >> $REPORT_FILE || echo "No deleted lines." >> $REPORT_FILE
             echo "-----------------------------------------------------------" >> $REPORT_FILE
           done
@@ -134,8 +137,15 @@ jobs:
           # Print the report at the end of step
           cat $REPORT_FILE
 
-      # Step 4: Generate summary report of changes
-      - name: Display captured delta report
+    # Step 5: Upload report to GitHub Actions summary (visible in UI)
+      - name: 📄 Upload delta report to GitHub Actions summary
         run: |
-          echo "📋 Delta Report:"
-          cat delta_report.txt
+          echo "## 🔍 Delta Changes Report" >> $GITHUB_STEP_SUMMARY
+          cat delta_report.txt >> $GITHUB_STEP_SUMMARY      
+
+    # Step 6: Upload delta report as artifact
+      - name: 📤 Upload delta report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: delta-report
+          path: delta_report.txt
