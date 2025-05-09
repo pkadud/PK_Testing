@@ -55,8 +55,9 @@ jobs:
           END_DATE="${{ github.event.inputs.end_date }}"
           EXCLUDE_DIRS="${{ github.event.inputs.exclude_dirs }}"
 
-          echo "📆 Checking changes between $START_DATE and $END_DATE..."
-          echo "📂 Excluding directories: $EXCLUDE_DIRS"
+          REPORT_FILE="delta_report.txt"
+          echo "📆 Changes between $START_DATE and $END_DATE" > $REPORT_FILE
+          echo "📂 Excluding directories: $EXCLUDE_DIRS" >> $REPORT_FILE
 
           build_exclude_grep() {
             for dir in $EXCLUDE_DIRS; do
@@ -68,126 +69,73 @@ jobs:
 
           get_filtered_files() {
             all_files=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=$1 --pretty=format: --name-only | sort | uniq)
-            
             if [ -n "$EXCLUDE_GREP" ]; then
-            echo "$all_files" | grep -Ev "$EXCLUDE_GREP"
+              echo "$all_files" | grep -Ev "$EXCLUDE_GREP"
             else
-            echo "$all_files"
+              echo "$all_files"
             fi
           }
 
-          echo "🔍 Gathering added files..."
+          echo "🔍 Gathering added files..." >> $REPORT_FILE
           added_files=$(get_filtered_files A)
 
-          echo "🔍 Gathering modified files..."
+          echo "🔍 Gathering modified files..." >> $REPORT_FILE
           modified_files=$(get_filtered_files M)
 
-          echo "🔍 Gathering deleted files..."
+          echo "🔍 Gathering deleted files..." >> $REPORT_FILE
           deleted_files=$(get_filtered_files D)
 
           if [ -z "$added_files$modified_files$deleted_files" ]; then
-            echo "✅ No file changes detected between $START_DATE and $END_DATE (excluding $EXCLUDE_DIRS)."
+            echo "✅ No file changes detected." >> $REPORT_FILE
+            cat $REPORT_FILE
             exit 0
           fi
 
-          echo ""
-          echo "🟢 Added Files:"
+          echo "" >> $REPORT_FILE
+          echo "🟢 Added Files:" >> $REPORT_FILE
           for file in $added_files; do
-            echo "➕ $file"
-            echo "🔹 Added lines:"
-            git log --since="$START_DATE" --until="$END_DATE" --diff-filter=A -p -- "$file" | grep '^+' | grep -v '^+++' || echo "No added lines."
-            echo "-----------------------------------------------------------"
+            echo "➕ $file" >> $REPORT_FILE
+            git log --since="$START_DATE" --until="$END_DATE" --diff-filter=A -p -- "$file" | grep '^+' | grep -v '^+++' >> $REPORT_FILE || echo "No added lines." >> $REPORT_FILE
+            echo "-----------------------------------------------------------" >> $REPORT_FILE
           done
 
-          echo ""
-          echo "📝 Modified Files:"
+          echo "" >> $REPORT_FILE
+          echo "📝 Modified Files:" >> $REPORT_FILE
           for file in $modified_files; do
-            echo "✏️  $file"
-            echo "🔹 Added lines:"
-            git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M -p -- "$file" | grep '^+' | grep -v '^+++' || echo "No added lines."
-            echo ""
-            echo "🔻 Deleted lines:"
-            git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M -p -- "$file" | grep '^-' | grep -v '^---' || echo "No deleted lines."
-            echo "-----------------------------------------------------------"
+            echo "✏️  $file" >> $REPORT_FILE
+            git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M -p -- "$file" | grep '^+' | grep -v '^+++' >> $REPORT_FILE || echo "No added lines." >> $REPORT_FILE
+            git log --since="$START_DATE" --until="$END_DATE" --diff-filter=M -p -- "$file" | grep '^-' | grep -v '^---' >> $REPORT_FILE || echo "No deleted lines." >> $REPORT_FILE
+            echo "-----------------------------------------------------------" >> $REPORT_FILE
           done
 
-          echo ""
-          echo "❌ Deleted Files:"
+          echo "" >> $REPORT_FILE
+          echo "❌ Deleted Files:" >> $REPORT_FILE
           if [ -z "$deleted_files" ]; then
-            echo "None"
+            echo "None" >> $REPORT_FILE
           else
             for file in $deleted_files; do
-              echo "🗑️  $file"
-
+              echo "🗑️  $file" >> $REPORT_FILE
               delete_commit=$(git log --since="$START_DATE" --until="$END_DATE" --diff-filter=D --pretty=format:"%H" -- "$file" | head -n 1)
-
               if [ -n "$delete_commit" ]; then
                 last_known_commit=$(git rev-list "$delete_commit"^ -- "$file" | head -n 1)
-
                 if [ -n "$last_known_commit" ]; then
-                  echo "🔎 Last known commit: $last_known_commit"
-                  echo "📄 Contents of $file before deletion:"
-                  echo "-----------------------------------------------------------"
-                  git show "${last_known_commit}:${file}" || echo "⚠️ File content unavailable (binary or inaccessible)"
+                  echo "🔎 Last known commit: $last_known_commit" >> $REPORT_FILE
+                  git show "${last_known_commit}:${file}" >> $REPORT_FILE || echo "⚠️ File content unavailable" >> $REPORT_FILE
                 else
-                  echo "⚠️ Could not find any commit with $file before deletion."
+                  echo "⚠️ Could not find commit before deletion." >> $REPORT_FILE
                 fi
               else
-                echo "⚠️ File $file was not deleted in the given range, or unable to locate deletion commit."
+                echo "⚠️ Deletion commit not found." >> $REPORT_FILE
               fi
-              echo "-----------------------------------------------------------"
+              echo "-----------------------------------------------------------" >> $REPORT_FILE
             done
           fi
+
+          # Print the report at the end of step
+          cat $REPORT_FILE
 
       # Step 4: Generate summary report of changes
-      - name: Generate summary report of added, removed, and modified records
+      - name: Display captured delta report
         run: |
-          START_DATE="${{ github.event.inputs.start_date }}"
-          END_DATE="${{ github.event.inputs.end_date }}"
-          EXCLUDE_DIRS="${{ github.event.inputs.exclude_dirs }}"
-          REPORT_FILE="delta_change_report.txt"
-          
-          echo "Generating delta change report from $START_DATE to $END_DATE" > $REPORT_FILE
-          echo "==========================================================" >> $REPORT_FILE
-          
-          modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
-          
-          if [ -n "$EXCLUDE_DIRS" ]; then
-            IFS=',' read -ra EXCLUDES <<< "$EXCLUDE_DIRS"
-            for exclude in "${EXCLUDES[@]}"; do
-              modified_files=$(echo "$modified_files" | grep -v "^$exclude")
-            done
-          fi
-          
-          if [ -z "$modified_files" ]; then
-            echo "No files have been modified between $START_DATE and $END_DATE." >> $REPORT_FILE
-          else
-            for file in $modified_files; do
-              echo "File: $file" >> $REPORT_FILE
-              echo "--------------------------" >> $REPORT_FILE
-          
-              # Get full detailed diffs (added/removed context and code) for the file
-              git log --since="$START_DATE" --until="$END_DATE" -p -- $file >> $REPORT_FILE
-          
-              echo "" >> $REPORT_FILE
-              echo "----------------------------------------------------------" >> $REPORT_FILE
-              echo "" >> $REPORT_FILE
-            done
-          fi
-          
-          echo "Report saved to $REPORT_FILE"
-
-      # Step 5: Upload report to GitHub Actions summary (visible in UI)
-      - name: Add summary to GitHub Actions output
-        run: |
-          echo "### Delta Change Report" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat delta_change_report.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
-      # Step 6: Upload delta report as artifact
-      - name: Upload delta change report
-        uses: actions/upload-artifact@v4
-        with:
-          name: delta-change-report
-          path: delta_change_report.txt
+          echo "📋 Delta Report:"
+          cat delta_report.txt
