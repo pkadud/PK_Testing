@@ -10,7 +10,7 @@ on:
         description: 'End date (YYYY-MM-DD)'
         required: true
       exclude_dirs:
-        description: 'Space-separated list of directories to exclude (e.g., "docs/ test/")'
+        description: 'Semicolon-separated list of directories to exclude (e.g., "docs/;test/")'
         required: false
         default: ''
 
@@ -39,7 +39,7 @@ jobs:
           modified_files=$(git log --since="$START_DATE" --until="$END_DATE" --pretty=format: --name-only | sort | uniq)
 
           if [ -n "$EXCLUDE_DIRS" ]; then
-            IFS=',' read -ra EXCLUDES <<< "$EXCLUDE_DIRS"
+            IFS=';' read -ra EXCLUDES <<< "$EXCLUDE_DIRS"
             for exclude in "${EXCLUDES[@]}"; do
               modified_files=$(echo "$modified_files" | grep -v "^$exclude")
             done
@@ -60,7 +60,8 @@ jobs:
           echo "📂 Excluding directories: $EXCLUDE_DIRS" >> $REPORT_FILE
 
           build_exclude_grep() {
-            for dir in $EXCLUDE_DIRS; do
+            IFS=';' read -ra EXCLUDES <<< "$EXCLUDE_DIRS"
+            for dir in "${EXCLUDES[@]}"; do
               echo -n "|^$dir"
             done | sed 's/^|//'
           }
