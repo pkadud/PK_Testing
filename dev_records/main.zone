@@ -4,6 +4,7 @@ $ORIGIN dev.example.com.
 api                3600   IN  A      32.224.213.52
 api-sandbox        3600   IN  A      32.224.213.52
 api-staging        3600   IN  A      32.224.213.52
+dummmy             300    IN CNAME   hjk.staging.example.com.
 
 ; DEV-4567 project=eng-ops-hub-services-dev, id=ab-xyz
 hub-ext-gw               3600  IN  A     35.32.141.212
